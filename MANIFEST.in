@@ -1,0 +1,2 @@
+include *.ini *.rst LICENSE
+recursive-include src/devpi_constrained/tests *.py
