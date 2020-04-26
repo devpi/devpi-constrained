@@ -35,6 +35,9 @@ class ConstrainedStage(object):
     def get_possible_indexconfig_keys(self):
         return ("constraints",)
 
+    def get_default_config_items(self):
+        return [("constraints", [])]
+
     def normalize_indexconfig_value(self, key, value):
         if key == "constraints":
             if not isinstance(value, list):
@@ -99,10 +102,3 @@ class ConstrainedStage(object):
 @server_hookimpl
 def devpiserver_get_stage_customizer_classes():
     return [("constrained", ConstrainedStage)]
-
-
-@server_hookimpl
-def devpiserver_indexconfig_defaults(index_type):
-    if index_type != "constrained":
-        return {}
-    return {'constraints': []}
