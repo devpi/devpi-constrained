@@ -85,7 +85,8 @@ class ConstrainedStage(object):
         version_filter = constraints.get(project)
         if version_filter is None:
             return
-        for key, href, require_python in links:
+        for link_info in links:
+            key = link_info[0]
             parts = splitext_archive(key)[0].split('-')
             for index in range(1, len(parts)):
                 name = normalize_name('-'.join(parts[:index]))
