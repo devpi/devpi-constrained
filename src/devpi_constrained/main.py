@@ -21,9 +21,12 @@ def parse_constraints(constraints):
             constraint = parse_requirement(constraint)
         except pkg_resources.RequirementParseError as e:
             raise pkg_resources.RequirementParseError(
-                "%s for %r" % (e, constraint))
+                "%s for %r" % (e, constraint)
+            )
         if constraint.project_name in result:
-            raise ValueError("Constraint for '%s' already exists." % constraint.project_name)
+            raise ValueError(
+                "Constraint for '%s' already exists." % constraint.project_name
+            )
         result[constraint.project_name] = constraint
     return result
 
@@ -59,8 +62,7 @@ class ConstrainedStage(object):
 
     @cached_property
     def constraints(self):
-        return parse_constraints(
-            self.stage.ixconfig.get("constraints", ""))
+        return parse_constraints(self.stage.ixconfig.get("constraints", ""))
 
     def get_projects_filter_iter(self, projects):
         constraints = self.constraints

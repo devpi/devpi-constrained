@@ -20,18 +20,20 @@ pytestmark = [pytest.mark.nomocking]
 @pytest.fixture
 def xom(request, makexom):
     import devpi_constrained.main
-    xom = makexom(plugins=[
-        (devpi_constrained.main, None)])
+
+    xom = makexom(plugins=[(devpi_constrained.main, None)])
     return xom
 
 
 @pytest.fixture
 def srcindex(mapp, simpypi, testapp):
     mapp.login_root()
-    api = mapp.create_index("mirror", indexconfig=dict(
-        type="mirror",
-        mirror_url=simpypi.simpleurl,
-        mirror_cache_expiry=0))
+    api = mapp.create_index(
+        "mirror",
+        indexconfig=dict(
+            type="mirror", mirror_url=simpypi.simpleurl, mirror_cache_expiry=0
+        ),
+    )
     return api
 
 
@@ -39,9 +41,8 @@ def srcindex(mapp, simpypi, testapp):
 def constrainedindex(mapp, srcindex):
     api = mapp.create_index(
         "constrained",
-        indexconfig=dict(
-            type="constrained",
-            bases=[srcindex.stagename]))
+        indexconfig=dict(type="constrained", bases=[srcindex.stagename]),
+    )
     return api
 
 
@@ -65,9 +66,9 @@ def test_invalid_constraints(constrainedindex, mapp, testapp):
     result = r.json['result']
     r = mapp.modify_index(
         constrainedindex.stagename,
-        dict(
-            result, constraints=['bla,']),
-        code=400)
+        dict(result, constraints=['bla,']),
+        code=400,
+    )
     assert "Invalid requirement" in r
     assert "bla," in r
 
@@ -77,10 +78,13 @@ def test_conflicting_constraints(constrainedindex, mapp, testapp):
     result = r.json['result']
     r = mapp.modify_index(
         constrainedindex.stagename,
-        dict(
-            result, constraints=['bla<2', 'bla<3']),
-        code=400)
-    assert "Error while parsing constrains: Constraint for 'bla' already exists." in r
+        dict(result, constraints=['bla<2', 'bla<3']),
+        code=400,
+    )
+    assert (
+        "Error while parsing constrains: Constraint for 'bla' already exists."
+        in r
+    )
 
 
 def test_constraints_file(constrainedindex, mapp, testapp):
@@ -88,16 +92,15 @@ def test_constraints_file(constrainedindex, mapp, testapp):
     result = r.json['result']
     r = mapp.modify_index(
         constrainedindex.stagename,
-        dict(
-            result, constraints='bla<2\nfoo>3\n\n# comment\n'))
+        dict(result, constraints='bla<2\nfoo>3\n\n# comment\n'),
+    )
     assert r['constraints'] == ['bla<2', 'foo>3']
 
 
 def test_default_no_block(constrainedindex, mapp, simpypi, testapp):
-    add_proj_versions(simpypi, [
-        ('devpi', '1.0b2'),
-        ('pkg', '1.1'),
-        ('pkg', '2.0')])
+    add_proj_versions(
+        simpypi, [('devpi', '1.0b2'), ('pkg', '1.1'), ('pkg', '2.0')]
+    )
     r = testapp.get(constrainedindex.simpleindex)
     assert "devpi/" in r.text
     assert "pkg/" in r.text
@@ -108,12 +111,10 @@ def test_default_no_block(constrainedindex, mapp, simpypi, testapp):
 
 
 def test_single_package(constrainedindex, mapp, simpypi, testapp):
-    add_proj_versions(simpypi, [
-        ('devpi', '1.0b2'),
-        ('pkg', '1.1'),
-        ('pkg', '2.0')])
-    r = testapp.patch_json(constrainedindex.index, [
-        'constraints=pkg'])
+    add_proj_versions(
+        simpypi, [('devpi', '1.0b2'), ('pkg', '1.1'), ('pkg', '2.0')]
+    )
+    r = testapp.patch_json(constrainedindex.index, ['constraints=pkg'])
     assert r.json['result']['constraints'] == ['pkg']
     r = testapp.get(constrainedindex.simpleindex)
     assert "devpi/" in r.text
@@ -129,12 +130,10 @@ def test_single_package(constrainedindex, mapp, simpypi, testapp):
 
 
 def test_single_package_all(constrainedindex, mapp, simpypi, testapp):
-    add_proj_versions(simpypi, [
-        ('devpi', '1.0b2'),
-        ('pkg', '1.1'),
-        ('pkg', '2.0')])
-    r = testapp.patch_json(constrainedindex.index, [
-        'constraints=pkg\n*'])
+    add_proj_versions(
+        simpypi, [('devpi', '1.0b2'), ('pkg', '1.1'), ('pkg', '2.0')]
+    )
+    r = testapp.patch_json(constrainedindex.index, ['constraints=pkg\n*'])
     assert r.json['result']['constraints'] == ['pkg', '*']
     r = testapp.get(constrainedindex.simpleindex)
     assert "devpi/" not in r.text
@@ -143,7 +142,9 @@ def test_single_package_all(constrainedindex, mapp, simpypi, testapp):
     mapp.get_simple("devpi", code=404)
     testapp.xget(
         404,
-        "/%s/%s" % (constrainedindex.stagename, "devpi"), accept="application/json")
+        "/%s/%s" % (constrainedindex.stagename, "devpi"),
+        accept="application/json",
+    )
     r = mapp.get_simple("pkg")
     assert "pkg-1.1.zip" in r.text
     assert "pkg-2.0.zip" in r.text
@@ -151,14 +152,17 @@ def test_single_package_all(constrainedindex, mapp, simpypi, testapp):
 
 
 def test_simple_projects_multiple(constrainedindex, mapp, simpypi, testapp):
-    add_proj_versions(simpypi, [
-        ('devpi', '1.0b2'),
-        ('pkg', '1.1'),
-        ('pkg', '2.0'),
-        ('hello', '1.0'),
-        ('hello', '1.1')])
-    r = testapp.patch_json(constrainedindex.index, [
-        'constraints=devpi\npkg'])
+    add_proj_versions(
+        simpypi,
+        [
+            ('devpi', '1.0b2'),
+            ('pkg', '1.1'),
+            ('pkg', '2.0'),
+            ('hello', '1.0'),
+            ('hello', '1.1'),
+        ],
+    )
+    r = testapp.patch_json(constrainedindex.index, ['constraints=devpi\npkg'])
     assert r.json['result']['constraints'] == ['devpi', 'pkg']
     r = testapp.get(constrainedindex.simpleindex)
     assert "<a" in r.text
@@ -178,15 +182,22 @@ def test_simple_projects_multiple(constrainedindex, mapp, simpypi, testapp):
     assert len(mapp.getreleaseslist("pkg")) == 2
 
 
-def test_simple_projects_multiple_all(constrainedindex, mapp, simpypi, testapp):
-    add_proj_versions(simpypi, [
-        ('devpi', '1.0b2'),
-        ('pkg', '1.1'),
-        ('pkg', '2.0'),
-        ('hello', '1.0'),
-        ('hello', '1.1')])
-    r = testapp.patch_json(constrainedindex.index, [
-        'constraints=devpi\npkg\n*'])
+def test_simple_projects_multiple_all(
+    constrainedindex, mapp, simpypi, testapp
+):
+    add_proj_versions(
+        simpypi,
+        [
+            ('devpi', '1.0b2'),
+            ('pkg', '1.1'),
+            ('pkg', '2.0'),
+            ('hello', '1.0'),
+            ('hello', '1.1'),
+        ],
+    )
+    r = testapp.patch_json(
+        constrainedindex.index, ['constraints=devpi\npkg\n*']
+    )
     assert r.json['result']['constraints'] == ['devpi', 'pkg', '*']
     r = testapp.get(constrainedindex.simpleindex)
     assert "<a" in r.text
@@ -196,7 +207,9 @@ def test_simple_projects_multiple_all(constrainedindex, mapp, simpypi, testapp):
     mapp.get_simple("hello", code=404)
     testapp.xget(
         404,
-        "/%s/%s" % (constrainedindex.stagename, "hello"), accept="application/json")
+        "/%s/%s" % (constrainedindex.stagename, "hello"),
+        accept="application/json",
+    )
     r = mapp.get_simple("devpi")
     assert "devpi-1.0b2.zip" in r.text
     assert len(mapp.getreleaseslist("devpi")) == 1
@@ -207,14 +220,17 @@ def test_simple_projects_multiple_all(constrainedindex, mapp, simpypi, testapp):
 
 
 def test_simple_projects_all(constrainedindex, mapp, simpypi, testapp):
-    add_proj_versions(simpypi, [
-        ('devpi', '1.0b2'),
-        ('pkg', '1.1'),
-        ('pkg', '2.0'),
-        ('hello', '1.0'),
-        ('hello', '1.1')])
-    r = testapp.patch_json(constrainedindex.index, [
-        'constraints=*'])
+    add_proj_versions(
+        simpypi,
+        [
+            ('devpi', '1.0b2'),
+            ('pkg', '1.1'),
+            ('pkg', '2.0'),
+            ('hello', '1.0'),
+            ('hello', '1.1'),
+        ],
+    )
+    r = testapp.patch_json(constrainedindex.index, ['constraints=*'])
     assert r.json['result']['constraints'] == ['*']
     r = testapp.get(constrainedindex.simpleindex)
     assert "<a" not in r.text
@@ -226,29 +242,43 @@ def test_simple_projects_all(constrainedindex, mapp, simpypi, testapp):
         testapp.xget(
             404,
             "/%s/%s" % (constrainedindex.stagename, proj),
-            accept="application/json")
+            accept="application/json",
+        )
 
 
 @pytest.mark.parametrize("constrain_all", (False, True))
-@pytest.mark.parametrize("constraint,expected", [
-    ('pkg', ['1.0', '1.1', '2.0']),
-    ('pkg>=2', ['2.0']),
-    ('pkg<2', ['1.0', '1.1']),
-    ('pkg==1.1', ['1.1']),
-    ('pkg!=1.1', ['1.0', '2.0']),
-    ('pkg==1.1', ['1.1'])])
-def test_versions(constrainedindex, constraint, expected, constrain_all, mapp, simpypi, testapp):
-    add_proj_versions(simpypi, [
-        ('pkg', '1.0'),
-        ('pkg', '1.1'),
-        ('pkg', '2.0')])
+@pytest.mark.parametrize(
+    "constraint,expected",
+    [
+        ('pkg', ['1.0', '1.1', '2.0']),
+        ('pkg>=2', ['2.0']),
+        ('pkg<2', ['1.0', '1.1']),
+        ('pkg==1.1', ['1.1']),
+        ('pkg!=1.1', ['1.0', '2.0']),
+        ('pkg==1.1', ['1.1']),
+    ],
+)
+def test_versions(
+    constrainedindex,
+    constraint,
+    expected,
+    constrain_all,
+    mapp,
+    simpypi,
+    testapp,
+):
+    add_proj_versions(
+        simpypi, [('pkg', '1.0'), ('pkg', '1.1'), ('pkg', '2.0')]
+    )
     if constrain_all:
-        r = testapp.patch_json(constrainedindex.index, [
-            'constraints=%s\n*' % constraint])
+        r = testapp.patch_json(
+            constrainedindex.index, ['constraints=%s\n*' % constraint]
+        )
         assert r.json['result']['constraints'] == [constraint, '*']
     else:
-        r = testapp.patch_json(constrainedindex.index, [
-            'constraints=%s' % constraint])
+        r = testapp.patch_json(
+            constrainedindex.index, ['constraints=%s' % constraint]
+        )
         assert r.json['result']['constraints'] == [constraint]
     r = mapp.get_simple("pkg")
     for version in expected:
