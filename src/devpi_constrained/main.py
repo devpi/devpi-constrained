@@ -1,9 +1,8 @@
+import pkg_resources
 from devpi_common.metadata import parse_requirement, splitext_archive
 from devpi_common.types import cached_property
 from devpi_common.validation import normalize_name
 from pluggy import HookimplMarker
-import pkg_resources
-
 
 server_hookimpl = HookimplMarker("devpiserver")
 
