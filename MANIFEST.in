@@ -1,2 +1,3 @@
+exclude .pre-commit-config.yaml
 include *.ini *.rst LICENSE
 recursive-include src/devpi_constrained/tests *.py
