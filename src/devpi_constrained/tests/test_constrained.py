@@ -68,8 +68,8 @@ def test_invalid_constraints(constrainedindex, mapp, testapp):
         dict(
             result, constraints=['bla,']),
         code=400)
-    assert "Invalid requirement" in r
-    assert "bla," in r
+    assert "Error while parsing constrains" in r
+    assert "\',\'" in r
 
 
 def test_conflicting_constraints(constrainedindex, mapp, testapp):
