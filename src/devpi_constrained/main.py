@@ -83,15 +83,11 @@ class ConstrainedStage(object):
         if version_filter is None:
             return
         for link in links:
-            parts = splitext_archive(link.key)[0].split('-')
-            for index in range(1, len(parts)):
-                name = normalize_name('-'.join(parts[:index]))
-                if name != project:
-                    continue
-                version = '-'.join(parts[index:])
-                if version in version_filter:
-                    yield True
-                    break
+            if link.name != project:
+                continue
+            if link.version in version_filter:
+                yield True
+                break
             else:
                 yield False
 
