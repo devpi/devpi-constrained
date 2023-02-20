@@ -86,18 +86,27 @@ class ConstrainedStage(object):
         if version_filter is None:
             return
         for link_info in links:
-            key = link_info[0]
-            parts = splitext_archive(key)[0].split('-')
-            for index in range(1, len(parts)):
-                name = normalize_name('-'.join(parts[:index]))
-                if name != project:
+            if isinstance(link_info, tuple):
+                key = link_info[0]
+                parts = splitext_archive(key)[0].split('-')
+                for index in range(1, len(parts)):
+                    name = normalize_name('-'.join(parts[:index]))
+                    if name != project:
+                        continue
+                    version = '-'.join(parts[index:])
+                    if version in version_filter:
+                        yield True
+                        break
+                    else:
+                        yield False
+            else:
+                if link_info.name != project:
                     continue
-                version = '-'.join(parts[index:])
-                if version in version_filter:
+                if link_info.version in version_filter:
                     yield True
                     break
-            else:
-                yield False
+                else:
+                    yield False
 
 
 @server_hookimpl
