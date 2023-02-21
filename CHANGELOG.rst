@@ -1,12 +1,14 @@
 Changelog
 =========
 
-1.0.1 - Unreleased
+2.0.0 - Unreleased
 ------------------
 
-- Block devpi-server 5.4.x, because it broke the index modify functionality.
+- Remove support for Python <= 3.6.
 
-- Support for devpi-server 6.0.0.
+- Add testing for Python 3.8, 3.9, 3.10, 3.11 and PyPy-3.7.
+
+- Require devpi-server >= 6.2.0.
 
 
 1.0.0 - 2019-08-05
