@@ -97,14 +97,13 @@ class ConstrainedStage(object):
                     if version in version_filter:
                         yield True
                         break
-                    else:
-                        yield False
+                else:
+                    yield False
             else:
                 if link_info.name != project:
                     continue
                 if link_info.version in version_filter:
                     yield True
-                    break
                 else:
                     yield False
 
