@@ -1,6 +1,13 @@
 Changelog
 =========
 
+2.0.1 - Unreleased
+------------------
+
+- Fix filtering of simple links page.
+  [EvaSDK (Gilles Dartiguelongue)]
+
+
 2.0.0 - 2023-02-21
 ------------------
 

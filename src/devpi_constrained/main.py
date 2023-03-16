@@ -104,7 +104,6 @@ class ConstrainedStage(object):
                     continue
                 if link_info.version in version_filter:
                     yield True
-                    break
                 else:
                     yield False
 

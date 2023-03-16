@@ -1,4 +1,5 @@
-import pytest
+from bs4 import BeautifulSoup
+from devpi_common.url import URL
 from test_devpi_server.conftest import gentmp  # noqa
 from test_devpi_server.conftest import httpget  # noqa
 from test_devpi_server.conftest import makemapp  # noqa
@@ -10,6 +11,7 @@ from test_devpi_server.conftest import simpypi  # noqa
 from test_devpi_server.conftest import simpypiserver  # noqa
 from test_devpi_server.conftest import storage_info  # noqa
 from test_devpi_server.conftest import testapp  # noqa
+import pytest
 
 (makexom, mapp, simpypi, testapp)  # shut up pyflakes
 
@@ -250,10 +252,12 @@ def test_versions(constrainedindex, constraint, expected, constrain_all, mapp, s
         r = testapp.patch_json(constrainedindex.index, [
             'constraints=%s' % constraint])
         assert r.json['result']['constraints'] == [constraint]
-    r = mapp.get_simple("pkg")
-    for version in expected:
-        assert "pkg-%s.zip" % version in r.text
     releases = sorted(mapp.getreleaseslist("pkg"))
     assert len(releases) == len(expected)
     for release, version in zip(releases, expected):
         release.endswith("pkg-%s.zip" % version)
+    r = mapp.get_simple("pkg")
+    pkgnames = [
+        URL(a.attrs['href']).basename
+        for a in BeautifulSoup(r.text, "html.parser").findAll("a")]
+    assert pkgnames == ['pkg-%s.zip' % x for x in reversed(expected)]
