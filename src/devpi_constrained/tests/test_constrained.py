@@ -1,3 +1,5 @@
+import re
+
 import pytest
 from test_devpi_server.conftest import gentmp  # noqa
 from test_devpi_server.conftest import httpget  # noqa
@@ -251,8 +253,14 @@ def test_versions(constrainedindex, constraint, expected, constrain_all, mapp, s
             'constraints=%s' % constraint])
         assert r.json['result']['constraints'] == [constraint]
     r = mapp.get_simple("pkg")
+
+    # Assert all expected versions are listed
     for version in expected:
         assert "pkg-%s.zip" % version in r.text
+
+    # Assert no unexpected versions are listed
+    assert expected == sorted(re.findall(r">pkg-([^<]+)\.zip<", r.text))
+
     releases = sorted(mapp.getreleaseslist("pkg"))
     assert len(releases) == len(expected)
     for release, version in zip(releases, expected):
