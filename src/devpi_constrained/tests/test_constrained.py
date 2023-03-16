@@ -236,6 +236,7 @@ def test_simple_projects_all(constrainedindex, mapp, simpypi, testapp):
     ('pkg', ['1.0', '1.1', '2.0']),
     ('pkg>=2', ['2.0']),
     ('pkg<2', ['1.0', '1.1']),
+    ('pkg~=1.0', ['1.0', '1.1']),
     ('pkg==1.1', ['1.1']),
     ('pkg!=1.1', ['1.0', '2.0']),
     ('pkg==1.1', ['1.1'])])
