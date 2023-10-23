@@ -71,7 +71,11 @@ def test_invalid_constraints(constrainedindex, mapp, testapp):
             result, constraints=['bla,']),
         code=400)
     assert "Error while parsing constrains" in r
-    assert "\',\'" in r
+    if "\',\'" in r:
+        assert 'Expected string_end' in r
+    else:
+        assert 'bla,' in r
+        assert 'Expected end or semicolon' in r
 
 
 def test_conflicting_constraints(constrainedindex, mapp, testapp):
