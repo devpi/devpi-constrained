@@ -1,22 +1,33 @@
 from bs4 import BeautifulSoup
+from devpi_common.metadata import parse_version
 from devpi_common.url import URL
-from test_devpi_server.conftest import gentmp  # noqa
-from test_devpi_server.conftest import httpget  # noqa
-from test_devpi_server.conftest import makemapp  # noqa
-from test_devpi_server.conftest import maketestapp  # noqa
-from test_devpi_server.conftest import makexom  # noqa
-from test_devpi_server.conftest import mapp  # noqa
-from test_devpi_server.conftest import pypiurls  # noqa
-from test_devpi_server.conftest import simpypi  # noqa
-from test_devpi_server.conftest import simpypiserver  # noqa
-from test_devpi_server.conftest import storage_info  # noqa
-from test_devpi_server.conftest import testapp  # noqa
+from devpi_server import __version__ as _devpi_server_version
 import pytest
 
-(makexom, mapp, simpypi, testapp)  # shut up pyflakes
+
+devpi_server_version = parse_version(_devpi_server_version)
 
 
-pytestmark = [pytest.mark.nomocking]
+if devpi_server_version < parse_version("6.9.3dev"):
+    from test_devpi_server.conftest import gentmp  # noqa: F401
+    from test_devpi_server.conftest import httpget  # noqa: F401
+    from test_devpi_server.conftest import makemapp  # noqa: F401
+    from test_devpi_server.conftest import maketestapp  # noqa: F401
+    from test_devpi_server.conftest import makexom
+    from test_devpi_server.conftest import mapp
+    from test_devpi_server.conftest import pypiurls  # noqa: F401
+    from test_devpi_server.conftest import simpypi
+    from test_devpi_server.conftest import simpypiserver  # noqa: F401
+    from test_devpi_server.conftest import storage_info  # noqa: F401
+    from test_devpi_server.conftest import testapp
+    (makexom, mapp, simpypi, testapp)  # shut up pyflakes
+else:
+    pytest_plugins = ["pytest_devpi_server", "test_devpi_server.plugin"]
+
+
+pytestmark = [
+    pytest.mark.nomocking,
+    pytest.mark.notransaction]
 
 
 @pytest.fixture
