@@ -56,8 +56,6 @@ class ConstrainedStage(object):
             parse_constraints(newconfig['constraints'])
         except Exception as e:
             errors.append("Error while parsing constrains: %s" % e)
-        if len(newconfig["bases"]) < 1:
-            errors.append("A constrained index requires at least one base")
         if errors:
             raise self.InvalidIndexconfig(errors)
 
