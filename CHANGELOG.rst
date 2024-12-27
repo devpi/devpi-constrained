@@ -1,6 +1,12 @@
 Changelog
 =========
 
+2.0.2 - Unreleased
+------------------
+
+- Fix devpi import/export
+  [amoutaux (Aurélien Moutaux)]
+
 2.0.1 - 2023-03-18
 ------------------
 
