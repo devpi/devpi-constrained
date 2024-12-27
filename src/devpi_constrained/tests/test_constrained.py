@@ -11,8 +11,8 @@ devpi_server_version = parse_version(_devpi_server_version)
 if devpi_server_version < parse_version("6.9.3dev"):
     from test_devpi_server.conftest import gentmp  # noqa: F401
     from test_devpi_server.conftest import httpget  # noqa: F401
-    from test_devpi_server.conftest import makemapp  # noqa: F401
-    from test_devpi_server.conftest import maketestapp  # noqa: F401
+    from test_devpi_server.conftest import makemapp
+    from test_devpi_server.conftest import maketestapp
     from test_devpi_server.conftest import makexom
     from test_devpi_server.conftest import mapp
     from test_devpi_server.conftest import pypiurls  # noqa: F401
@@ -20,7 +20,7 @@ if devpi_server_version < parse_version("6.9.3dev"):
     from test_devpi_server.conftest import simpypiserver  # noqa: F401
     from test_devpi_server.conftest import storage_info  # noqa: F401
     from test_devpi_server.conftest import testapp
-    (makexom, mapp, simpypi, testapp)  # shut up pyflakes
+    (makemapp, maketestapp, makexom, mapp, simpypi, testapp)  # shut up pyflakes
 else:
     pytest_plugins = ["pytest_devpi_server", "test_devpi_server.plugin"]
 
