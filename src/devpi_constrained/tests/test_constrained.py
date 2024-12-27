@@ -124,6 +124,27 @@ def test_default_no_block(constrainedindex, mapp, simpypi, testapp):
         assert len(mapp.getreleaseslist(proj)) > 0
 
 
+@pytest.mark.skipif(
+    devpi_server_version < parse_version("6.10"),
+    reason="Requires terminalwriter fixture")
+def test_export_import(constrainedindex, mapp, makemapp, maketestapp, makexom, srcindex, terminalwriter, tmp_path):
+    from devpi_server.importexport import do_export, do_import
+    import devpi_constrained.main
+    serverdir2 = tmp_path.joinpath("server2")
+    xom2 = makexom(
+        ["--serverdir", serverdir2],
+        plugins=[(devpi_constrained.main, None)])
+    mapp2 = makemapp(maketestapp(xom2))
+    assert mapp.xom != mapp2.xom
+    export_path = tmp_path.joinpath("export")
+    do_export(export_path, terminalwriter, mapp.xom)
+    xom2.config.args.wait_for_events = False
+    do_import(export_path, terminalwriter, xom2)
+    with xom2.keyfs.read_transaction():
+        constrainedindex2 = xom2.model.getstage(constrainedindex.stagename)
+        assert constrainedindex2.ixconfig['bases'] == (srcindex.stagename,)
+
+
 def test_single_package(constrainedindex, mapp, simpypi, testapp):
     add_proj_versions(simpypi, [
         ('devpi', '1.0b2'),
