@@ -11,10 +11,10 @@ jobs:
       matrix:
         include:
           - python-version: "3.7"
-            os: "ubuntu-latest"
+            os: "ubuntu-22.04"
             tox-envs: "py37-server620"
           - python-version: "3.7"
-            os: "ubuntu-latest"
+            os: "ubuntu-22.04"
             tox-envs: "py37"
           - python-version: "3.11"
             os: "ubuntu-latest"
@@ -51,10 +51,10 @@ jobs:
       matrix:
         include:
           - python-version: "3.7"
-            os: "ubuntu-latest"
+            os: "ubuntu-22.04"
             tox-envs: "py37-server620"
           - python-version: "3.7"
-            os: "ubuntu-latest"
+            os: "ubuntu-22.04"
             tox-envs: "py37"
           - python-version: "3.11"
             os: "ubuntu-latest"
