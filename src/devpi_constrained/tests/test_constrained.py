@@ -273,13 +273,12 @@ def test_simple_projects_all(constrainedindex, mapp, simpypi, testapp):
             accept="application/json")
 
 
-@pytest.mark.parametrize("constrain_all", (False, True))
-@pytest.mark.parametrize("constraint,expected", [
+@pytest.mark.parametrize("constrain_all", [False, True])
+@pytest.mark.parametrize(("constraint", "expected"), [
     ('pkg', ['2004d', '1.0', '1.1', '2.0']),
     ('pkg>=2', ['2.0']),
     ('pkg<2', ['1.0', '1.1']),
     ('pkg~=1.0', ['1.0', '1.1']),
-    ('pkg==1.1', ['1.1']),
     ('pkg!=1.1', ['1.0', '2.0']),
     ('pkg==1.1', ['1.1'])])
 def test_versions(constrainedindex, constraint, expected, constrain_all, mapp, simpypi, testapp):

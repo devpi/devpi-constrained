@@ -1,0 +1,31 @@
+[tool.ruff]
+extend = "ruff-strict.toml"
+
+
+[tool.ruff.format]
+exclude = [
+    "src/devpi_constrained/__init__.py",
+    "src/devpi_constrained/main.py",
+    "src/devpi_constrained/tests/test_constrained.py",
+]
+
+
+[tool.ruff.lint.extend-per-file-ignores]
+"src/devpi_constrained/main.py" = [
+    "ARG002", # maybe cleanup later - unused method argument
+    "B904", # maybe cleanup later
+    "BLE001", # cleanup later
+    "I001", # maybe cleanup later - import block unsorted
+    "PLW2901", # maybe cleanup later
+    "RET503", # maybe cleanup later - missing return
+    "UP004", # cleanup later - inherit from 'object'
+    "UP031", # maybe cleanup later - printf string formatting
+]
+"src/devpi_constrained/tests/test_constrained.py" = [
+    "ARG001", # maybe cleanup later - unused function argument
+    "B018", # cleanup later
+    "B905", # cleanup later
+    "I001", # maybe cleanup later - import block unsorted
+    "RET504", # maybe cleanup later - unnecessary assignment before return
+    "UP031", # maybe cleanup later - printf string formatting
+]

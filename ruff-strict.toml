@@ -1,0 +1,39 @@
+[lint]
+future-annotations = true
+select = ["ALL"]
+ignore = [
+    "ANN", # maybe cleanup later - annotations
+    "C408", # ignore - dict call
+    "COM812", # ignore - ruff format
+    "D", # ignore - docstrings
+    "E501", # ignore - line too long
+    "N", # ignore - naming
+    "PLC0415", # ignore - import at top-level of file
+    "PLR0913", # ignore - too many arguments
+    "PLR2004", # ignore - magic value comparison
+    "PTH", # ignore - pathlib
+    "Q", # ignore - quotes style
+    "TD", # ignore - todos
+]
+
+pyupgrade.keep-runtime-typing = true
+
+
+[lint.flake8-type-checking]
+strict = true
+
+
+[lint.isort]
+case-sensitive = true
+force-single-line = true
+from-first = true
+lines-after-imports = 2
+no-sections = true
+order-by-type = false
+
+
+[lint.per-file-ignores]
+"src/devpi_constrained/tests/test_*.py" = [
+    "INP001", # ignore - implicit namespace package
+    "S101", # ignore - asserts
+]
