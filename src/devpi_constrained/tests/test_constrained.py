@@ -86,7 +86,7 @@ def test_invalid_constraints(constrainedindex, mapp, testapp):
         assert 'Expected string_end' in r
     else:
         assert 'bla,' in r
-        assert 'Expected end or semicolon' in r
+        assert "Expected end or semicolon" in r or "Expected semicolon" in r
 
 
 def test_conflicting_constraints(constrainedindex, mapp, testapp):
