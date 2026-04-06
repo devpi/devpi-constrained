@@ -23,7 +23,6 @@ exclude = [
 ]
 "src/devpi_constrained/tests/test_constrained.py" = [
     "ARG001", # maybe cleanup later - unused function argument
-    "B018", # cleanup later
     "B905", # cleanup later
     "I001", # maybe cleanup later - import block unsorted
     "RET504", # maybe cleanup later - unnecessary assignment before return

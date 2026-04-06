@@ -4,6 +4,8 @@ Changelog
 2.1.0 - Unreleased
 ------------------
 
+- Support upcoming devpi-server 7.0.0.
+
 - Rudimentary support for legacy (non PEP440) versions.
   [fschulze]
 

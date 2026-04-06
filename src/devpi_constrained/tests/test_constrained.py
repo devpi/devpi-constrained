@@ -12,6 +12,23 @@ pytestmark = [
 
 
 @pytest.fixture
+def remote_index_info(server_version):
+    from devpi_common.metadata import parse_version
+
+    if server_version < parse_version("7.0.0.dev2"):
+
+        class MirrorInfo:
+            type = "mirror"
+
+        return MirrorInfo()
+
+    class RemoteInfo:
+        type = "remote"
+
+    return RemoteInfo()
+
+
+@pytest.fixture
 def xom(request, makexom):
     import devpi_constrained.main
     xom = makexom(plugins=[
@@ -20,12 +37,16 @@ def xom(request, makexom):
 
 
 @pytest.fixture
-def srcindex(mapp, simpypi, testapp):
+def srcindex(mapp, remote_index_info, simpypi):
     mapp.login_root()
-    api = mapp.create_index("mirror", indexconfig=dict(
-        type="mirror",
-        mirror_url=simpypi.simpleurl,
-        mirror_cache_expiry=0))
+    api = mapp.create_index(
+        "mirror",
+        indexconfig=dict(
+            type=remote_index_info.type,
+            mirror_url=simpypi.simpleurl,
+            mirror_cache_expiry=0,
+        ),
+    )
     return api
 
 
