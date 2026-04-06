@@ -1,28 +1,9 @@
 from bs4 import BeautifulSoup
-from devpi_common.metadata import parse_version
 from devpi_common.url import URL
-from devpi_server import __version__ as _devpi_server_version
 import pytest
 
 
-devpi_server_version = parse_version(_devpi_server_version)
-
-
-if devpi_server_version < parse_version("6.9.3dev"):
-    from test_devpi_server.conftest import gentmp  # noqa: F401
-    from test_devpi_server.conftest import httpget  # noqa: F401
-    from test_devpi_server.conftest import makemapp
-    from test_devpi_server.conftest import maketestapp
-    from test_devpi_server.conftest import makexom
-    from test_devpi_server.conftest import mapp
-    from test_devpi_server.conftest import pypiurls  # noqa: F401
-    from test_devpi_server.conftest import simpypi
-    from test_devpi_server.conftest import simpypiserver  # noqa: F401
-    from test_devpi_server.conftest import storage_info  # noqa: F401
-    from test_devpi_server.conftest import testapp
-    (makemapp, maketestapp, makexom, mapp, simpypi, testapp)  # shut up pyflakes
-else:
-    pytest_plugins = ["pytest_devpi_server", "test_devpi_server.plugin"]
+pytest_plugins = ["pytest_devpi_server", "test_devpi_server.plugin"]
 
 
 pytestmark = [
@@ -125,9 +106,6 @@ def test_default_no_block(constrainedindex, mapp, simpypi, testapp):
         assert len(mapp.getreleaseslist(proj)) > 0
 
 
-@pytest.mark.skipif(
-    devpi_server_version < parse_version("6.10"),
-    reason="Requires terminalwriter fixture")
 def test_export_import(constrainedindex, mapp, makemapp, maketestapp, makexom, srcindex, terminalwriter, tmp_path):
     from devpi_server.importexport import do_export, do_import
     import devpi_constrained.main

@@ -7,10 +7,10 @@ Changelog
 - Rudimentary support for legacy (non PEP440) versions.
   [fschulze]
 
-- Require devpi-server >= 6.9.0.
+- Require devpi-server >= 6.10.0.
   [fschulze]
 
-- Add support for Python 3.12 and 3.13.
+- Add support for Python 3.12, 3.13 and 3.14.
   [fschulze]
 
 - Fix devpi import/export
