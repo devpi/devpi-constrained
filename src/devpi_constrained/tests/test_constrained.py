@@ -18,12 +18,16 @@ def remote_index_info(server_version):
     if server_version < parse_version("7.0.0.dev2"):
 
         class MirrorInfo:
+            refresh_option = "mirror_cache_expiry"
             type = "mirror"
+            url_option = "mirror_url"
 
         return MirrorInfo()
 
     class RemoteInfo:
+        refresh_option = "remote_refresh_delay"
         type = "remote"
+        url_option = "remote_url"
 
     return RemoteInfo()
 
@@ -41,11 +45,11 @@ def srcindex(mapp, remote_index_info, simpypi):
     mapp.login_root()
     api = mapp.create_index(
         "mirror",
-        indexconfig=dict(
-            type=remote_index_info.type,
-            mirror_url=simpypi.simpleurl,
-            mirror_cache_expiry=0,
-        ),
+        indexconfig={
+            "type": remote_index_info.type,
+            remote_index_info.url_option: simpypi.simpleurl,
+            remote_index_info.refresh_option: 0,
+        },
     )
     return api
 
