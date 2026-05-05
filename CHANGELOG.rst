@@ -4,7 +4,8 @@ Changelog
 2.1.0 - Unreleased
 ------------------
 
-- Support upcoming devpi-server 7.0.0.
+- With devpi-server 7.0.0 filtering when inheriting from a constrained index works as expected.
+  [fschulze]
 
 - Fix version filtering with "*" (all) constraint.
   [fschulze]

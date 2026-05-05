@@ -1,11 +1,14 @@
 from bs4 import BeautifulSoup
+from devpi_common.metadata import parse_version
 from devpi_common.url import URL
+from devpi_server import __version__ as _devpi_server_version
 import pytest
 
 
 pytest_plugins = ["pytest_devpi_server", "test_devpi_server.plugin"]
 
 
+devpi_server_version = parse_version(_devpi_server_version)
 pytestmark = [
     pytest.mark.nomocking,
     pytest.mark.notransaction]
@@ -64,6 +67,30 @@ def constrainedindex(mapp, srcindex):
     return api
 
 
+@pytest.fixture
+def inheritingindex(mapp, constrainedindex):
+    return mapp.create_index(
+        "inheritingindex", indexconfig=dict(bases=[constrainedindex.stagename])
+    )
+
+
+@pytest.fixture(
+    params=[
+        pytest.param(False, id="nobase"),
+        pytest.param(
+            True,
+            id="withbase",
+            marks=pytest.mark.skipif(
+                devpi_server_version < parse_version("7.0.0dev4"),
+                reason="Needs inherited filtering",
+            ),
+        ),
+    ]
+)
+def testindex(constrainedindex, inheritingindex, request):
+    return inheritingindex if request.param else constrainedindex
+
+
 def add_proj_versions(simpypi, proj_versions):
     for proj, ver in proj_versions:
         fn = "%s-%s.zip" % (proj, ver)
@@ -116,13 +143,13 @@ def test_constraints_file(constrainedindex, mapp, testapp):
     assert r['constraints'] == ['bla<2', 'foo>3']
 
 
-def test_default_no_block(constrainedindex, mapp, simpypi, testapp):
+def test_default_no_block(mapp, simpypi, testapp, testindex):
     add_proj_versions(simpypi, [
         ('devpi', '1.0b2'),
         ('pkg', '1.1'),
         ('pkg', '2.0'),
         ('pytz', '2004d')])
-    r = testapp.get(constrainedindex.simpleindex)
+    r = testapp.get(testindex.simpleindex)
     assert "devpi/" in r.text
     assert "pkg/" in r.text
     assert "<a" in r.text
@@ -149,7 +176,7 @@ def test_export_import(constrainedindex, mapp, makemapp, maketestapp, makexom, s
         assert constrainedindex2.ixconfig['bases'] == (srcindex.stagename,)
 
 
-def test_single_package(constrainedindex, mapp, simpypi, testapp):
+def test_single_package(constrainedindex, mapp, simpypi, testapp, testindex):
     add_proj_versions(simpypi, [
         ('devpi', '1.0b2'),
         ('pkg', '1.1'),
@@ -158,7 +185,7 @@ def test_single_package(constrainedindex, mapp, simpypi, testapp):
     r = testapp.patch_json(constrainedindex.index, [
         'constraints=pkg'])
     assert r.json['result']['constraints'] == ['pkg']
-    r = testapp.get(constrainedindex.simpleindex)
+    r = testapp.get(testindex.simpleindex)
     assert "devpi/" in r.text
     assert "<a" in r.text
     assert "pkg/" in r.text
@@ -171,7 +198,7 @@ def test_single_package(constrainedindex, mapp, simpypi, testapp):
     assert len(mapp.getreleaseslist("pkg")) == 2
 
 
-def test_single_package_all(constrainedindex, mapp, simpypi, testapp):
+def test_single_package_all(constrainedindex, mapp, simpypi, testapp, testindex):
     add_proj_versions(simpypi, [
         ('devpi', '1.0b2'),
         ('pkg', '1.1'),
@@ -180,10 +207,11 @@ def test_single_package_all(constrainedindex, mapp, simpypi, testapp):
     r = testapp.patch_json(constrainedindex.index, [
         'constraints=pkg\n*'])
     assert r.json['result']['constraints'] == ['pkg', '*']
-    r = testapp.get(constrainedindex.simpleindex)
+    r = testapp.get(testindex.simpleindex)
     assert "devpi/" not in r.text
     assert "<a" in r.text
     assert "pkg/" in r.text
+    mapp.use(testindex.stagename)
     mapp.get_simple("devpi", code=404)
     testapp.xget(
         404,
@@ -194,7 +222,7 @@ def test_single_package_all(constrainedindex, mapp, simpypi, testapp):
     assert len(mapp.getreleaseslist("pkg")) == 2
 
 
-def test_simple_projects_multiple(constrainedindex, mapp, simpypi, testapp):
+def test_simple_projects_multiple(constrainedindex, mapp, simpypi, testapp, testindex):
     add_proj_versions(simpypi, [
         ('devpi', '1.0b2'),
         ('pkg', '1.1'),
@@ -205,11 +233,12 @@ def test_simple_projects_multiple(constrainedindex, mapp, simpypi, testapp):
     r = testapp.patch_json(constrainedindex.index, [
         'constraints=devpi\npkg'])
     assert r.json['result']['constraints'] == ['devpi', 'pkg']
-    r = testapp.get(constrainedindex.simpleindex)
+    r = testapp.get(testindex.simpleindex)
     assert "<a" in r.text
     assert "devpi/" in r.text
     assert "pkg/" in r.text
     assert "hello/" in r.text
+    mapp.use(testindex.stagename)
     r = mapp.get_simple("hello")
     assert "hello-1.0.zip" in r.text
     assert "hello-1.1.zip" in r.text
@@ -223,7 +252,9 @@ def test_simple_projects_multiple(constrainedindex, mapp, simpypi, testapp):
     assert len(mapp.getreleaseslist("pkg")) == 2
 
 
-def test_simple_projects_multiple_all(constrainedindex, mapp, simpypi, testapp):
+def test_simple_projects_multiple_all(
+    constrainedindex, mapp, simpypi, testapp, testindex
+):
     add_proj_versions(simpypi, [
         ('devpi', '1.0b2'),
         ('pkg', '1.1'),
@@ -234,15 +265,16 @@ def test_simple_projects_multiple_all(constrainedindex, mapp, simpypi, testapp):
     r = testapp.patch_json(constrainedindex.index, [
         'constraints=devpi\npkg\n*'])
     assert r.json['result']['constraints'] == ['devpi', 'pkg', '*']
-    r = testapp.get(constrainedindex.simpleindex)
+    r = testapp.get(testindex.simpleindex)
     assert "<a" in r.text
     assert "devpi/" in r.text
     assert "pkg/" in r.text
     assert "hello/" not in r.text
+    mapp.use(testindex.stagename)
     mapp.get_simple("hello", code=404)
     testapp.xget(
-        404,
-        "/%s/%s" % (constrainedindex.stagename, "hello"), accept="application/json")
+        404, "/{}/{}".format(testindex.stagename, "hello"), accept="application/json"
+    )
     r = mapp.get_simple("devpi")
     assert "devpi-1.0b2.zip" in r.text
     assert len(mapp.getreleaseslist("devpi")) == 1
@@ -252,7 +284,7 @@ def test_simple_projects_multiple_all(constrainedindex, mapp, simpypi, testapp):
     assert len(mapp.getreleaseslist("pkg")) == 2
 
 
-def test_simple_projects_all(constrainedindex, mapp, simpypi, testapp):
+def test_simple_projects_all(constrainedindex, mapp, simpypi, testapp, testindex):
     add_proj_versions(simpypi, [
         ('devpi', '1.0b2'),
         ('pkg', '1.1'),
@@ -263,20 +295,19 @@ def test_simple_projects_all(constrainedindex, mapp, simpypi, testapp):
     r = testapp.patch_json(constrainedindex.index, [
         'constraints=*'])
     assert r.json['result']['constraints'] == ['*']
-    r = testapp.get(constrainedindex.simpleindex)
+    r = testapp.get(testindex.simpleindex)
     assert "<a" not in r.text
     assert "devpi/" not in r.text
     assert "hello/" not in r.text
     assert "pkg/" not in r.text
+    mapp.use(testindex.stagename)
     for proj in ("devpi", "hello", "pkg"):
         mapp.get_simple(proj, code=404)
-        testapp.xget(
-            404,
-            "/%s/%s" % (constrainedindex.stagename, proj),
-            accept="application/json")
+        testapp.xget(404, f"/{testindex.stagename}/{proj}", accept="application/json")
 
 
-def test_constraint_all(constrainedindex, mapp, simpypi, testapp):
+def test_constraint_all(constrainedindex, mapp, simpypi, testapp, testindex):
+    mapp.use(testindex.stagename)
     all_versions = [
         "2004d",  # legacy non PEP440
         "1.0",
@@ -294,7 +325,7 @@ def test_constraint_all(constrainedindex, mapp, simpypi, testapp):
     ]
     assert pkgnames == []
     with mapp.xom.keyfs.read_transaction():
-        index = mapp.xom.model.getstage(constrainedindex.stagename)
+        index = mapp.xom.model.getstage(testindex.stagename)
         assert index.has_project("pkg") is False
         assert index.list_versions("pkg") == set()
         assert {x.version for x in index.get_releaselinks("pkg")} == set()
@@ -311,12 +342,24 @@ def test_constraint_all(constrainedindex, mapp, simpypi, testapp):
     ('pkg~=1.0', ['1.0', '1.1']),
     ('pkg!=1.1', ['1.0', '2.0']),
     ('pkg==1.1', ['1.1'])])
-def test_versions(constrainedindex, constraint, expected, constrain_all, mapp, simpypi, testapp):
-    add_proj_versions(simpypi, [
-        ('pkg', '2004d'),  # legacy non PEP440
-        ('pkg', '1.0'),
-        ('pkg', '1.1'),
-        ('pkg', '2.0')])
+def test_versions(
+    constrainedindex,
+    constraint,
+    expected,
+    constrain_all,
+    mapp,
+    simpypi,
+    testapp,
+    testindex,
+):
+    mapp.use(testindex.stagename)
+    all_versions = [
+        "2004d",  # legacy non PEP440
+        "1.0",
+        "1.1",
+        "2.0",
+    ]
+    add_proj_versions(simpypi, [("pkg", v) for v in all_versions])
     if constrain_all:
         r = testapp.patch_json(constrainedindex.index, [
             'constraints=%s\n*' % constraint])
@@ -334,3 +377,80 @@ def test_versions(constrainedindex, constraint, expected, constrain_all, mapp, s
         URL(a.attrs['href']).basename
         for a in BeautifulSoup(r.text, "html.parser").findAll("a")]
     assert pkgnames == ['pkg-%s.zip' % x for x in reversed(expected)]
+    with mapp.xom.keyfs.read_transaction():
+        index = mapp.xom.model.getstage(testindex.stagename)
+        assert index.has_project("pkg") is True
+        assert index.list_versions("pkg") == set(expected)
+        assert {x.version for x in index.get_releaselinks("pkg")} == set(expected)
+        assert {x.version for x in index.get_simplelinks("pkg")} == set(expected)
+        for filtered_version in set(all_versions).difference(expected):
+            assert not index.get_versiondata("pkg", filtered_version)
+        for expected_version in expected:
+            assert index.get_versiondata("pkg", expected_version)
+
+
+@pytest.mark.skipif(
+    devpi_server_version < parse_version("7.0.0dev4"),
+    reason="Needs inherited filtering",
+)
+@pytest.mark.parametrize(
+    ("constraint1", "constraint2", "expected"),
+    [
+        ("pkg", "pkg!=1.1", ["2004d", "1.0", "1.1", "2.0"]),
+        ("pkg>=2", "pkg>=1.1", ["1.1", "2.0"]),
+        ("pkg==2", "pkg==1.1", ["1.1", "2.0"]),
+        ("pkg==2", "pkg>=2", ["2.0"]),
+        ("*", "pkg!=1.1", ["1.0", "2.0"]),
+        ("pkg!=1.1", "*", ["1.0", "2.0"]),
+    ],
+)
+def test_complex_inheritance(
+    constraint1, constraint2, expected, mapp, simpypi, srcindex
+):
+    all_versions = [
+        "2004d",  # legacy non PEP440
+        "1.0",
+        "1.1",
+        "2.0",
+    ]
+    add_proj_versions(simpypi, [("pkg", v) for v in all_versions])
+    api_c1 = mapp.create_index(
+        "constrained1",
+        indexconfig=dict(
+            type="constrained",
+            bases=[srcindex.stagename],
+            constraints=constraint1,
+        ),
+    )
+    api_c2 = mapp.create_index(
+        "constrained2",
+        indexconfig=dict(
+            type="constrained",
+            bases=[srcindex.stagename],
+            constraints=constraint2,
+        ),
+    )
+    api = mapp.create_index(
+        "inheriting", indexconfig=dict(bases=[api_c1.stagename, api_c2.stagename])
+    )
+    mapp.use(api.stagename)
+    releases = sorted(mapp.getreleaseslist("pkg"))
+    assert len(releases) == len(expected)
+    for release, version in zip(releases, expected, strict=True):
+        release.endswith(f"pkg-{version}.zip")
+    r = mapp.get_simple("pkg")
+    pkgnames = [
+        URL(a.attrs["href"]).basename
+        for a in BeautifulSoup(r.text, "html.parser").findAll("a")
+    ]
+    assert pkgnames == [f"pkg-{x}.zip" for x in reversed(expected)]
+    with mapp.xom.keyfs.read_transaction():
+        index = mapp.xom.model.getstage(api.stagename)
+        assert index.has_project("pkg") is True
+        assert index.list_versions("pkg") == set(expected)
+        assert {x.version for x in index.get_releaselinks("pkg")} == set(expected)
+        assert {x.version for x in index.get_simplelinks("pkg")} == set(expected)
+        for filtered_version in set(all_versions).difference(expected):
+            assert not index.get_versiondata("pkg", filtered_version)
+        for expected_version in expected:
+            assert index.get_versiondata("pkg", expected_version)
