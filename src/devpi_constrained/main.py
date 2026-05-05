@@ -74,8 +74,12 @@ class ConstrainedStage(object):
             yield project in constraints
 
     def get_versions_filter_iter(self, project, versions):
-        version_filter = self.constraints.get(project)
+        constraints = self.constraints
+        version_filter = constraints.get(project)
         if version_filter is None:
+            if constraints.constrain_all:
+                for _i in range(len(versions)):
+                    yield False
             return
         # when there is no filter, we let legacy versions pass through
         include_legacy = not len(version_filter)
@@ -89,10 +93,13 @@ class ConstrainedStage(object):
             else:
                 yield parsed_version in version_filter
 
-    def get_simple_links_filter_iter(self, project, links):
+    def get_simple_links_filter_iter(self, project, links):  # noqa: C901,PLR0912
         constraints = self.constraints
         version_filter = constraints.get(project)
         if version_filter is None:
+            if constraints.constrain_all:
+                for _i in range(len(links)):
+                    yield False
             return
         # when there is no filter, we let legacy versions pass through
         include_legacy = not len(version_filter)

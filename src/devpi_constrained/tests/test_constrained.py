@@ -276,6 +276,33 @@ def test_simple_projects_all(constrainedindex, mapp, simpypi, testapp):
             accept="application/json")
 
 
+def test_constraint_all(constrainedindex, mapp, simpypi, testapp):
+    all_versions = [
+        "2004d",  # legacy non PEP440
+        "1.0",
+        "1.1",
+        "2.0",
+    ]
+    add_proj_versions(simpypi, [("pkg", v) for v in all_versions])
+    r = testapp.patch_json(constrainedindex.index, ["constraints=*"])
+    assert r.json["result"]["constraints"] == ["*"]
+    assert not mapp.getreleaseslist("pkg", code=404)
+    r = mapp.get_simple("pkg", code=404)
+    pkgnames = [
+        URL(a.attrs["href"]).basename
+        for a in BeautifulSoup(r.text, "html.parser").findAll("a")
+    ]
+    assert pkgnames == []
+    with mapp.xom.keyfs.read_transaction():
+        index = mapp.xom.model.getstage(constrainedindex.stagename)
+        assert index.has_project("pkg") is False
+        assert index.list_versions("pkg") == set()
+        assert {x.version for x in index.get_releaselinks("pkg")} == set()
+        assert {x.version for x in index.get_simplelinks("pkg")} == set()
+        for filtered_version in all_versions:
+            assert not index.get_versiondata("pkg", filtered_version)
+
+
 @pytest.mark.parametrize("constrain_all", [False, True])
 @pytest.mark.parametrize(("constraint", "expected"), [
     ('pkg', ['2004d', '1.0', '1.1', '2.0']),

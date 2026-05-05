@@ -6,6 +6,9 @@ Changelog
 
 - Support upcoming devpi-server 7.0.0.
 
+- Fix version filtering with "*" (all) constraint.
+  [fschulze]
+
 - Rudimentary support for legacy (non PEP440) versions.
   [fschulze]
 
