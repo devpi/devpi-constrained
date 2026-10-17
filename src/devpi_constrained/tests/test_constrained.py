@@ -334,6 +334,45 @@ def test_constraint_all(constrainedindex, mapp, simpypi, testapp, testindex):
             assert not index.get_versiondata("pkg", filtered_version)
 
 
+def test_normalized_names(constrainedindex, mapp, simpypi, testapp):
+    simpypi.add_release("pytest-cov", pkgver="pytest_cov-2.8.0-py3-none-any.whl")
+    simpypi.add_release("pytest-cov", pkgver="pytest-cov-2.10.0.tar.gz")
+    simpypi.add_release("pytest-cov", pkgver="pytest_cov-7.1.0-py3-none-any.whl")
+    simpypi.add_release("pytest-cov", pkgver="pytest_cov-7.1.0.tar.gz")
+    simpypi.add_release("pytest-cov", pkgver="pytest_cov-7.2.0-py3-none-any.whl")
+    simpypi.add_release("pyyaml", pkgver="PyYAML-3.10.tar.gz")
+    simpypi.add_release("pyyaml", pkgver="PyYAML-6.0.2.tar.gz")
+    simpypi.add_release("pyyaml", pkgver="PyYAML-6.0.3-cp312-cp312-win_amd64.whl")
+    constraint = "pytest-cov >=7.1.0,<=7.1.0\npyyaml>=6.0.2,<=6.0.2"
+    testapp.patch_json(constrainedindex.index, [f"constraints={constraint}"])
+    releases = sorted(
+        URL(url).basename for url in sorted(mapp.getreleaseslist("pytest-cov"))
+    )
+    assert releases == [
+        "pytest_cov-7.1.0-py3-none-any.whl",
+        "pytest_cov-7.1.0.tar.gz",
+    ]
+    r = mapp.get_simple("pytest-cov")
+    pkgnames = sorted(
+        URL(a.attrs["href"]).basename
+        for a in BeautifulSoup(r.text, "html.parser").findAll("a")
+    )
+    assert pkgnames == [
+        "pytest_cov-7.1.0-py3-none-any.whl",
+        "pytest_cov-7.1.0.tar.gz",
+    ]
+    releases = sorted(
+        URL(url).basename for url in sorted(mapp.getreleaseslist("pyyaml"))
+    )
+    assert releases == ["PyYAML-6.0.2.tar.gz"]
+    r = mapp.get_simple("pyyaml")
+    pkgnames = sorted(
+        URL(a.attrs["href"]).basename
+        for a in BeautifulSoup(r.text, "html.parser").findAll("a")
+    )
+    assert pkgnames == ["PyYAML-6.0.2.tar.gz"]
+
+
 @pytest.mark.parametrize("constrain_all", [False, True])
 @pytest.mark.parametrize(("constraint", "expected"), [
     ('pkg', ['2004d', '1.0', '1.1', '2.0']),
