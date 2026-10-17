@@ -114,13 +114,15 @@ class ConstrainedStage(object):
                     if name != project:
                         continue
                     version = '-'.join(parts[index:])
-                    if version in version_filter:
-                        yield True
-                        break
-                    else:
-                        yield False
+                    yield version in version_filter
+                    break
+                else:
+                    # no prefix of the filename matches the project, reject it
+                    # (every link needs exactly one verdict, see apply_filter_iter)
+                    yield False
             else:
-                if link_info.name != project:
+                if normalize_name(link_info.name) != project:
+                    yield False
                     continue
                 version = link_info.version
                 parsed_version = parse_version(version) if isinstance(version, str) else version
