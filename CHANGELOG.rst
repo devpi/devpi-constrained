@@ -4,7 +4,7 @@ Changelog
 2.1.1 - Unreleased
 ------------------
 
-- Fix version filtering for packages with un-normalized names.
+- Fix #14: correct version filtering for packages with un-normalized names.
   [cu-mnapier]
 
 - Always yield a result for all elements to adapt to strict checking in devpi-server 7.x.
