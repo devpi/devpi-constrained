@@ -1,6 +1,13 @@
 Changelog
 =========
 
+2.1.1 - Unreleased
+------------------
+
+- Always yield a result for all elements to adapt to strict checking in devpi-server 7.x.
+  [fschulze]
+
+
 2.1.0 - 2026-05-08
 ------------------
 

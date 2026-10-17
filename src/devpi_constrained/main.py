@@ -68,18 +68,19 @@ class ConstrainedStage(object):
 
     def get_projects_filter_iter(self, projects):
         constraints = self.constraints
-        if not constraints.constrain_all:
-            return
-        for project in projects:
-            yield project in constraints
+        if constraints.constrain_all:
+            yield from (project in constraints for project in projects)
+        else:
+            yield from (True for _project in projects)
 
     def get_versions_filter_iter(self, project, versions):
         constraints = self.constraints
         version_filter = constraints.get(project)
         if version_filter is None:
             if constraints.constrain_all:
-                for _i in range(len(versions)):
-                    yield False
+                yield from (False for _version in versions)
+            else:
+                yield from (True for _version in versions)
             return
         # when there is no filter, we let legacy versions pass through
         include_legacy = not len(version_filter)
@@ -98,8 +99,9 @@ class ConstrainedStage(object):
         version_filter = constraints.get(project)
         if version_filter is None:
             if constraints.constrain_all:
-                for _i in range(len(links)):
-                    yield False
+                yield from (False for _link in links)
+            else:
+                yield from (True for _link in links)
             return
         # when there is no filter, we let legacy versions pass through
         include_legacy = not len(version_filter)
