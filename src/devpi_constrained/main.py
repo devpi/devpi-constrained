@@ -94,7 +94,7 @@ class ConstrainedStage(object):
             else:
                 yield parsed_version in version_filter
 
-    def get_simple_links_filter_iter(self, project, links):  # noqa: C901,PLR0912
+    def get_simple_links_filter_iter(self, project, links):  # noqa: PLR0912
         constraints = self.constraints
         version_filter = constraints.get(project)
         if version_filter is None:

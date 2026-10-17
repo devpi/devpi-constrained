@@ -4,7 +4,6 @@ extend = "ruff-strict.toml"
 
 [tool.ruff.format]
 exclude = [
-    "src/devpi_constrained/__init__.py",
     "src/devpi_constrained/main.py",
     "src/devpi_constrained/tests/test_constrained.py",
 ]

@@ -5,6 +5,7 @@ ignore = [
     "ANN", # maybe cleanup later - annotations
     "C408", # ignore - dict call
     "COM812", # ignore - ruff format
+    "CPY001", # ignore - copyright
     "D", # ignore - docstrings
     "E501", # ignore - line too long
     "N", # ignore - naming
@@ -35,5 +36,6 @@ order-by-type = false
 [lint.per-file-ignores]
 "src/devpi_constrained/tests/test_*.py" = [
     "INP001", # ignore - implicit namespace package
+    "PLR0917", # ignore - positional argument count
     "S101", # ignore - asserts
 ]
